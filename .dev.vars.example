@@ -1,0 +1,4 @@
+ADMIN_KEY=change-me
+# ANTHROPIC_API_KEY=sk-ant-...   # optional: plain-English rewrites; templates otherwise
+# UW_API_KEY=...                 # optional locally; wrangler.toml UW_MODE=fixtures serves sample data
+# DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...

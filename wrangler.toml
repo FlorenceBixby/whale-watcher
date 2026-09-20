@@ -1,0 +1,24 @@
+name = "whale-watcher"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+# The agents SDK imports node:async_hooks / node:crypto internally.
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "WHALE_WATCHER"
+class_name = "WhaleWatcher"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WhaleWatcher"]
+
+[observability]
+enabled = true
+
+[vars]
+# "live" hits api.unusualwhales.com with UW_API_KEY; "fixtures" serves the bundled
+# sample data so the whole pipeline runs with no key (tests, demos, dev).
+UW_MODE = "fixtures"
+
+# Secrets (wrangler secret put / .dev.vars): UW_API_KEY, DISCORD_WEBHOOK_URL,
+# ANTHROPIC_API_KEY, ADMIN_KEY

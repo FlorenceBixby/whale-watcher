@@ -1,0 +1,13 @@
+{
+  "name": "whale-watcher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/index.js && node --check src/watcher.js && node --check src/uw.js && node --check src/detect.js && node --check src/narrate.js && node --check src/discord.js && node --check src/ui.js",
+    "test": "node --test test/*.test.mjs",
+    "dev": "wrangler dev --port 8788",
+    "deploy": "npm run check && npm test && wrangler deploy"
+  },
+  "dependencies": { "agents": "^0.23.0" },
+  "devDependencies": { "wrangler": "^4.105.0" }
+}

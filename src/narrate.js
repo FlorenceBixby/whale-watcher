@@ -31,7 +31,7 @@ ${JSON.stringify(payload)}
 
 Respond with exactly ${events.length} lines and nothing else. Each line starts with the item number, a period, and a space — e.g. "3. NVDA ...". No blank lines, no preamble, no markdown.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("https://gateway.ai.cloudflare.com/v1/39c192c934290776b0b406805133fa4b/whale-watcher/anthropic/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({

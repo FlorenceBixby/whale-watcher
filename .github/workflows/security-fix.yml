@@ -39,7 +39,11 @@ jobs:
           lockver() { python3 -c "import json,sys; d=json.load(open('package-lock.json')); p=d.get('packages',{}); print(next((v.get('version','?') for k,v in p.items() if k.endswith('node_modules/'+sys.argv[1])), '?'))" "$1"; }
           before=$( [ -n "$PKG" ] && lockver "$PKG" || echo "-" )
           npm ci --ignore-scripts >/dev/null 2>&1 || npm install --ignore-scripts >/dev/null 2>&1
-          if [ -n "$PKG" ]; then npm update "$PKG" --ignore-scripts; else npm audit fix --ignore-scripts || true; fi
+          if [ -n "$PKG" ]; then npm update "$PKG" --ignore-scripts || true; fi
+          # A single-package update often can't move a pinned transitive dep; fall back to
+          # npm audit fix (never --force, so no major bumps) for everything fixable here.
+          if [ -z "$PKG" ] || git diff --quiet -- package-lock.json; then PKG=""; npm audit fix --ignore-scripts || true; fi
+          echo "pkg=$PKG" >> "$GITHUB_OUTPUT"
           after=$( [ -n "$PKG" ] && lockver "$PKG" || echo "-" )
           if git diff --quiet -- package-lock.json package.json; then echo "changed=0" >> "$GITHUB_OUTPUT"; else echo "changed=1" >> "$GITHUB_OUTPUT"; fi
           echo "before=$before" >> "$GITHUB_OUTPUT"; echo "after=$after" >> "$GITHUB_OUTPUT"
@@ -47,7 +51,7 @@ jobs:
         if: steps.bump.outputs.changed == '1'
         run: |
           set -e
-          PKG="${{ github.event.inputs.package }}"; DIR="${{ github.event.inputs.manifest_dir }}"
+          PKG="${{ steps.bump.outputs.pkg }}"; DIR="${{ github.event.inputs.manifest_dir }}"
           BRANCH="security-agent/$(echo "${PKG:-audit-fix}" | tr -c "a-zA-Z0-9" "-")-${{ github.run_id }}"
           if [ -n "$PKG" ]; then TITLE="Bump $PKG from ${{ steps.bump.outputs.before }} to ${{ steps.bump.outputs.after }} in /$DIR"; else TITLE="Security fix: npm audit fix in /$DIR"; fi
           git config user.name "security-agent"; git config user.email "security-agent@users.noreply.github.com"

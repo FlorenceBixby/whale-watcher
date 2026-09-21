@@ -2,8 +2,9 @@ name: Security Fix
 
 # Dispatched by the security agent (security-agent.burke-ruder.workers.dev) when
 # Dependabot has an open alert but no PR for it. Bumps the package in the given
-# manifest directory and opens a Dependabot-style PR; the agent merges it on its
-# next sweep if checks pass and the bump is not a major version.
+# manifest directory and pushes a security-agent/* branch whose commit title is
+# Dependabot-style; the agent opens the PR from that branch and merges it on a
+# later sweep if checks pass and the bump is not a major version.
 
 on:
   workflow_dispatch:
@@ -40,10 +41,8 @@ jobs:
           after=$( [ -n "$PKG" ] && npm ls "$PKG" --depth=20 --json 2>/dev/null | python3 -c "import json,sys,re; s=json.dumps(json.load(sys.stdin)); m=re.search(r\"\\\"$PKG\\\":\\s*\\{[^}]*?\\\"version\\\":\\s*\\\"([^\\\"]+)\", s); print(m.group(1) if m else \"?\")" || echo "-" )
           if git diff --quiet -- package-lock.json package.json; then echo "changed=0" >> "$GITHUB_OUTPUT"; else echo "changed=1" >> "$GITHUB_OUTPUT"; fi
           echo "before=$before" >> "$GITHUB_OUTPUT"; echo "after=$after" >> "$GITHUB_OUTPUT"
-      - name: Open PR
+      - name: Push fix branch
         if: steps.bump.outputs.changed == '1'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
           PKG="${{ github.event.inputs.package }}"; DIR="${{ github.event.inputs.manifest_dir }}"
@@ -51,4 +50,4 @@ jobs:
           if [ -n "$PKG" ]; then TITLE="Bump $PKG from ${{ steps.bump.outputs.before }} to ${{ steps.bump.outputs.after }} in /$DIR"; else TITLE="Security fix: npm audit fix in /$DIR"; fi
           git config user.name "security-agent"; git config user.email "security-agent@users.noreply.github.com"
           git checkout -b "$BRANCH"; git add -A "$DIR"; git commit -m "$TITLE"; git push -u origin "$BRANCH"
-          gh pr create --title "$TITLE" --body "Opened automatically by the security agent for an open Dependabot alert. Merged automatically on the next sweep if checks pass and this is not a major bump." --base "${{ github.event.repository.default_branch }}" --head "$BRANCH"
+          echo "pushed $BRANCH — the security agent opens the PR"

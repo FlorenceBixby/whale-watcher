@@ -36,9 +36,11 @@ jobs:
           [ -f package-lock.json ] || { echo "no package-lock.json here — nothing to do"; echo "changed=0" >> "$GITHUB_OUTPUT"; exit 0; }
           PKG="${{ github.event.inputs.package }}"
           npm ci --ignore-scripts >/dev/null 2>&1 || npm install --ignore-scripts >/dev/null 2>&1
-          before=$( [ -n "$PKG" ] && npm ls "$PKG" --depth=20 --json 2>/dev/null | python3 -c "import json,sys,re; s=json.dumps(json.load(sys.stdin)); m=re.search(r\"\\\"$PKG\\\":\\s*\\{[^}]*?\\\"version\\\":\\s*\\\"([^\\\"]+)\", s); print(m.group(1) if m else \"?\")" || echo "-" )
+          lockver() { python3 -c "import json,sys; d=json.load(open('package-lock.json')); p=d.get('packages',{}); print(next((v.get('version','?') for k,v in p.items() if k.endswith('node_modules/'+sys.argv[1])), '?'))" "$1"; }
+          before=$( [ -n "$PKG" ] && lockver "$PKG" || echo "-" )
+          npm ci --ignore-scripts >/dev/null 2>&1 || npm install --ignore-scripts >/dev/null 2>&1
           if [ -n "$PKG" ]; then npm update "$PKG" --ignore-scripts; else npm audit fix --ignore-scripts || true; fi
-          after=$( [ -n "$PKG" ] && npm ls "$PKG" --depth=20 --json 2>/dev/null | python3 -c "import json,sys,re; s=json.dumps(json.load(sys.stdin)); m=re.search(r\"\\\"$PKG\\\":\\s*\\{[^}]*?\\\"version\\\":\\s*\\\"([^\\\"]+)\", s); print(m.group(1) if m else \"?\")" || echo "-" )
+          after=$( [ -n "$PKG" ] && lockver "$PKG" || echo "-" )
           if git diff --quiet -- package-lock.json package.json; then echo "changed=0" >> "$GITHUB_OUTPUT"; else echo "changed=1" >> "$GITHUB_OUTPUT"; fi
           echo "before=$before" >> "$GITHUB_OUTPUT"; echo "after=$after" >> "$GITHUB_OUTPUT"
       - name: Push fix branch

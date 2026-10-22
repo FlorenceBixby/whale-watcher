@@ -9,5 +9,5 @@
     "deploy": "npm run check && npm test && wrangler deploy"
   },
   "dependencies": { "agents": "^0.23.0" },
-  "devDependencies": { "wrangler": "^4.105.0" }
+  "devDependencies": { "wrangler": "^4.147.0" }
 }

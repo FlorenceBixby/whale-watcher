@@ -8,6 +8,6 @@
     "dev": "wrangler dev --port 8788",
     "deploy": "npm run check && npm test && wrangler deploy"
   },
-  "dependencies": { "agents": "^0.23.0" },
+  "dependencies": { "agents": "^0.32.0" },
   "devDependencies": { "wrangler": "^4.105.0" }
 }
